@@ -1,0 +1,9 @@
+secrets.h
+build/
+*.hex
+*.bin
+*.elf
+.pio/
+.vscode/
+.DS_Store
+Thumbs.db

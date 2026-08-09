@@ -7,7 +7,7 @@
     - Real-time occupancy tracking for 3 parking spots
     - OLED status display (spot availability + system status)
     - Blynk app integration (live status, manual gate override)
-    - Multi-network WiFi fallback (tries up to 3 saved networks)
+    - Auto-reconnect if WiFi drops
 
   Libraries required (Arduino Library Manager):
     - Blynk (Blynk IoT)
@@ -17,27 +17,17 @@
   Board: ESP32 Dev Module
 */
 
-// ── Blynk credentials ────────────────────────────────────
-// Get these from your Blynk IoT dashboard: Template Settings > Info
-#define BLYNK_TEMPLATE_ID   "YOUR_BLYNK_TEMPLATE_ID"
-#define BLYNK_TEMPLATE_NAME "YOUR_BLYNK_TEMPLATE_NAME"
-#define BLYNK_AUTH_TOKEN    "YOUR_BLYNK_AUTH_TOKEN"
+// ── Credentials ───────────────────────────────────────────
+// Blynk template info + WiFi networks live in secrets.h, which is
+// gitignored so it never gets pushed. Copy secrets.h.example to
+// secrets.h in this same folder and fill in your real values.
+#include "secrets.h"
 
 #include <WiFi.h>
 #include <BlynkSimpleEsp32.h>
 #include <ESP32Servo.h>
 #include <Wire.h>
 #include <U8g2lib.h>
-
-// ── WiFi credentials ─────────────────────────────────────
-// Add up to 3 networks. The device tries them in order and
-// keeps retrying all three if none connect.
-#define WIFI_SSID   "YOUR_WIFI_SSID_1"
-#define WIFI_PASS   "YOUR_WIFI_PASSWORD_1"
-#define WIFI_SSID2  "YOUR_WIFI_SSID_2"
-#define WIFI_PASS2  "YOUR_WIFI_PASSWORD_2"
-#define WIFI_SSID3  "YOUR_WIFI_SSID_3"
-#define WIFI_PASS3  "YOUR_WIFI_PASSWORD_3"
 
 // ── Pin definitions ──────────────────────────────────────
 #define IR_OUTSIDE  14   // Detects vehicle approaching gate from outside
@@ -373,50 +363,10 @@ void showWiFiStatus(bool connected) {
 
 // ─── WIFI CONNECT ────────────────────────────────────────
 bool connectWiFi() {
-  const char* ssids[]     = { WIFI_SSID,  WIFI_SSID2,  WIFI_SSID3  };
-  const char* passwords[] = { WIFI_PASS,  WIFI_PASS2,  WIFI_PASS3  };
-  int numNetworks = 3;
-
   while (true) {
-    for (int n = 0; n < numNetworks; n++) {
-      Serial.print("Trying WiFi ");
-      Serial.print(n + 1);
-      Serial.print(": ");
-      Serial.println(ssids[n]);
+    Serial.print("Trying WiFi: ");
+    Serial.println(WIFI_SSID);
 
-      display.clearBuffer();
-      display.setFont(u8g2_font_6x10_tf);
-      const char* title = "SMART IOT PARKING";
-      int titleW = strlen(title) * 6;
-      int titleX = (128 - titleW) / 2;
-      display.drawStr(titleX, 10, title);
-      display.drawHLine(0, 12, 128);
-      display.setFont(u8g2_font_5x7_tf);
-      char buf[22];
-      snprintf(buf, sizeof(buf), "Trying WiFi %d/%d...", n + 1, numNetworks);
-      display.drawStr(10, 35, buf);
-      String ssidShort = String(ssids[n]);
-      if (ssidShort.length() > 21) ssidShort = ssidShort.substring(0, 21);
-      display.drawStr(10, 50, ssidShort.c_str());
-      display.sendBuffer();
-
-      WiFi.disconnect(true);
-      delay(200);
-      WiFi.begin(ssids[n], passwords[n]);
-
-      for (int i = 0; i < 20; i++) {
-        if (WiFi.status() == WL_CONNECTED) {
-          Serial.print("Connected to WiFi ");
-          Serial.println(n + 1);
-          return true;
-        }
-        delay(500);
-        Serial.print(".");
-      }
-      Serial.println(" Failed.");
-    }
-
-    Serial.println("All 3 networks failed. Retrying...");
     display.clearBuffer();
     display.setFont(u8g2_font_6x10_tf);
     const char* title = "SMART IOT PARKING";
@@ -425,8 +375,33 @@ bool connectWiFi() {
     display.drawStr(titleX, 10, title);
     display.drawHLine(0, 12, 128);
     display.setFont(u8g2_font_5x7_tf);
-    display.drawStr(10, 35, "All WiFi failed.");
-    display.drawStr(10, 50, "Retrying all...");
+    display.drawStr(10, 35, "Connecting to WiFi...");
+    String ssidShort = String(WIFI_SSID);
+    if (ssidShort.length() > 21) ssidShort = ssidShort.substring(0, 21);
+    display.drawStr(10, 50, ssidShort.c_str());
+    display.sendBuffer();
+
+    WiFi.disconnect(true);
+    delay(200);
+    WiFi.begin(WIFI_SSID, WIFI_PASS);
+
+    for (int i = 0; i < 20; i++) {
+      if (WiFi.status() == WL_CONNECTED) {
+        Serial.println("Connected to WiFi");
+        return true;
+      }
+      delay(500);
+      Serial.print(".");
+    }
+    Serial.println(" Failed. Retrying...");
+
+    display.clearBuffer();
+    display.setFont(u8g2_font_6x10_tf);
+    display.drawStr(titleX, 10, title);
+    display.drawHLine(0, 12, 128);
+    display.setFont(u8g2_font_5x7_tf);
+    display.drawStr(10, 35, "WiFi failed.");
+    display.drawStr(10, 50, "Retrying...");
     display.sendBuffer();
     delay(3000);
   }
