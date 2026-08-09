@@ -38,22 +38,22 @@ This project is that: a self-contained ESP32 unit that watches the lot with IR s
 ## Architecture
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                        ESP32 Dev Board                        │
+┌─────────────────────────────────────────────────────────────────┐
+│                        ESP32 Dev Board                          │
 │                                                                 │
 │   IR sensors (x5) ──▶  Gate state   ──▶  OLED display          │
-│   in/out + 3 spots     machine           (spot + status view)  │
-│                            │                                   │
-│                            ▼                                   │
+│   in/out + 3 spots     machine           (spot + status view)   │
+│                            │                                    │
+│                            ▼                                    │
 │                      Servo (boom gate) ◀── External 5V         │
 │                                              + decoupling caps  │
-└───────────────────────────┬────────────────────────────────────┘
+└───────────────────────────┬─────────────────────────────────────┘
                              │ WiFi
                              ▼
                    ┌───────────────────┐
-                   │   Blynk IoT app    │
-                   │  live status,       │
-                   │  manual override    │
+                   │   Blynk IoT app   │
+                   │  live status,     │
+                   │  manual override  │
                    └───────────────────┘
 ```
 
@@ -83,29 +83,29 @@ Full setup, including the Blynk template, is below.
 
 ## 🔧 Hardware Required
 
-| Component                     | Qty | Notes                          |
-|--------------------------------|-----|---------------------------------|
-| ESP32 Dev Board                | 1   | Any ESP32 DevKit variant        |
-| IR Obstacle Sensor Module      | 5   | 2 for gate (in/out), 3 for spots|
-| SG90 / MG90S Servo Motor       | 1   | Drives the boom gate            |
-| SH1106 128x64 OLED Display     | 1   | I2C interface                   |
-| External 5V power supply       | 1   | Powers the servo — see below    |
-| Electrolytic capacitor         | 1   | 1000µF, 16V — servo power rail  |
-| Ceramic capacitor               | 1   | 100nF (0.1µF) — servo power rail|
+| Component                      | Qty | Notes                            |
+|--------------------------------|-----|----------------------------------|
+| ESP32 Dev Board                | 1   | Any ESP32 DevKit variant         |
+| IR Obstacle Sensor Module      | 5   | 2 for gate (in/out), 3 for spots |
+| SG90 / MG90S Servo Motor       | 1   | Drives the boom gate             |
+| SH1106 128x64 OLED Display     | 1   | I2C interface                    |
+| External 5V power supply       | 1   | Powers the servo — see below     |
+| Electrolytic capacitor         | 1   | 1000µF, 16V — servo power rail   |
+| Ceramic capacitor              | 1   | 100nF (0.1µF) — servo power rail |
 | Jumper wires, breadboard/PCB   | –   |                                  |
 
 ## 🔌 Pin Configuration
 
-| Signal          | ESP32 GPIO |
-|------------------|-----------|
-| IR – Outside gate | 14        |
-| IR – Inside gate  | 27        |
-| IR – Spot 1       | 26        |
-| IR – Spot 2       | 25        |
-| IR – Spot 3       | 33        |
-| Servo signal      | 12        |
-| OLED SDA          | 21        |
-| OLED SCL          | 22        |
+| Signal            | ESP32 GPIO |
+|-------------------|------------|
+| IR – Outside gate | 14         |
+| IR – Inside gate  | 27         |
+| IR – Spot 1       | 26         |
+| IR – Spot 2       | 25         |
+| IR – Spot 3       | 33         |
+| Servo signal      | 12         |
+| OLED SDA          | 21         |
+| OLED SCL          | 22         |
 
 ---
 
@@ -134,13 +134,13 @@ Both capacitors go across the same two rail wires, right at the servo connector 
    - Sign up / log in at [blynk.cloud](https://blynk.cloud)
    - Create a new template and add these datastreams:
 
-     | Virtual Pin | Type    | Purpose                        |
+     | Virtual Pin | Type    | Purpose                          |
      |-------------|---------|----------------------------------|
-     | V0          | LED     | Spot 1 occupied                 |
-     | V1          | LED     | Spot 2 occupied                 |
-     | V2          | LED     | Spot 3 occupied                 |
-     | V3          | Label   | Gate state (OPEN/CLOSED/LOCKED) |
-     | V4          | Label   | System status message           |
+     | V0          | LED     | Spot 1 occupied                  |
+     | V1          | LED     | Spot 2 occupied                  |
+     | V2          | LED     | Spot 3 occupied                  |
+     | V3          | Label   | Gate state (OPEN/CLOSED/LOCKED)  |
+     | V4          | Label   | System status message            |
      | V5          | Label   | Gate activity log                |
      | V6          | Label   | Free spot count                  |
      | V7          | Switch  | Manual gate override             |
